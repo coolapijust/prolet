@@ -18,7 +18,9 @@ ALLOWED_EXTENSIONS = {'.txt', '.md', '.docx'}
 
 CONFIG_FILE = Path(__file__).parent.parent / 'reader' / 'config.json'
 
-if os.environ.get('GITHUB_ACTIONS') == 'true':
+is_github_actions = os.environ.get('GITHUB_ACTIONS') == 'true' or os.environ.get('CI') == 'true'
+
+if is_github_actions:
     current_dir = Path.cwd()
     if 'tools' in str(current_dir).lower():
         CONFIG_FILE = current_dir / 'reader' / 'config.json'

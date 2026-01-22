@@ -15,7 +15,9 @@ from datetime import datetime
 
 WORKSPACE = Path(os.environ.get('GITHUB_WORKSPACE', '.'))
 
-if os.environ.get('GITHUB_ACTIONS') == 'true':
+is_github_actions = os.environ.get('GITHUB_ACTIONS') == 'true' or os.environ.get('CI') == 'true'
+
+if is_github_actions:
     current_dir = Path.cwd()
     if 'tools' in str(current_dir).lower():
         WORKSPACE = current_dir
@@ -75,9 +77,9 @@ def get_github_repo():
 
 def get_source_dir():
     config = load_config()
-    source_dir = config.get('source_dir', 'txt')
+    source_dir = config.get('source_dir', '')
     if not source_dir:
-        log_info('使用默认源目录: txt')
+        log_info(f'使用默认源目录: txt')
         return 'txt'
     log_info(f'从配置文件读取源目录: {source_dir}')
     return source_dir
@@ -91,7 +93,10 @@ def get_token():
     return token
 
 def get_branch():
-    branch = os.environ.get('GITHUB_REF', 'refs/heads/main').replace('refs/heads/', '')
+    branch = os.environ.get('GITHUB_REF', 'refs/heads/master').replace('refs/heads/', '')
+    if not branch:
+        branch = 'master'
+        log_info(f'使用默认分支: master')
     log_info(f'目标分支: {branch}')
     return branch
 
@@ -316,7 +321,7 @@ def main():
         
         path = item['path']
         
-        if not path.startswith(SOURCE_DIR + '/'):
+        if SOURCE_DIR and not path.startswith(SOURCE_DIR + '/'):
             skipped += 1
             continue
         
