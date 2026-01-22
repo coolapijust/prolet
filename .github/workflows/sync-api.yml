@@ -54,6 +54,14 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Cache SHA Cache
+        uses: actions/cache@v4
+        with:
+          path: tools/.github/file-sha-cache.json
+          key: ${{ runner.os }}-sha-cache-${{ hashFiles('tools/.github/file-sha-cache.json') }}
+          restore-keys: |
+            ${{ runner.os }}-sha-cache-
+
       - name: Install Dependencies
         run: |
           echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 安装依赖..."

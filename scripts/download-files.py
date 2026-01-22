@@ -172,13 +172,33 @@ def save_file_sha_cache(cache):
     except Exception as e:
         log_error(f'保存 SHA 缓存失败: {e}')
 
-def download_file(path, sha, repo, token, sha_cache, max_retries=MAX_RETRIES):
-    dest = WORKSPACE / path
+def sanitize_filename(path):
+    invalid_chars = {'"', ':', '<', '>', '|', '*', '?', '\r', '\n'}
+    path_obj = Path(path)
+    filename = path_obj.name
     
-    cached_sha = sha_cache.get(path)
+    if not any(char in filename for char in invalid_chars):
+        return path, False
+    
+    original_filename = filename
+    for char in invalid_chars:
+        filename = filename.replace(char, '_')
+    
+    new_path = str(path_obj.parent / filename)
+    return new_path, original_filename != filename
+
+def download_file(path, sha, repo, token, sha_cache, max_retries=MAX_RETRIES):
+    sanitized_path, was_sanitized = sanitize_filename(path)
+    dest = WORKSPACE / sanitized_path
+    
+    cache_key = sanitized_path
+    cached_sha = sha_cache.get(cache_key)
     if cached_sha == sha and dest.exists() and dest.stat().st_size > 0:
-        log_info(f'[Cache] 跳过未变更文件: {path}')
+        log_info(f'[Cache] 跳过未变更文件: {sanitized_path}')
         return True
+    
+    if was_sanitized:
+        log_info(f'[Sanitize] 文件名包含无效字符，已替换: {path} -> {sanitized_path}')
     
     url = f'https://api.github.com/repos/{repo}/git/blobs/{sha}'
     headers = {
@@ -199,8 +219,8 @@ def download_file(path, sha, repo, token, sha_cache, max_retries=MAX_RETRIES):
                 with open(dest, 'wb') as f:
                     f.write(content)
                 
-                sha_cache[path] = sha
-                log_info(f'[Download] 下载成功: {path} ({len(content)} bytes)')
+                sha_cache[cache_key] = sha
+                log_info(f'[Download] 下载成功: {sanitized_path} ({len(content)} bytes)')
                 return True
                 
         except urllib.error.HTTPError as e:
