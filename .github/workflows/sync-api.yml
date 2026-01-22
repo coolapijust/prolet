@@ -54,7 +54,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .github/file-sha-cache.json
-          key: ${{ runner.os }}-sha-cache-${{ hashFiles('.github/file-sha-cache.json') }}
+          key: ${{ runner.os }}-sha-cache-${{ hashFiles('reader/config.json') }}
           restore-keys: |
             ${{ runner.os }}-sha-cache-
 
@@ -72,6 +72,16 @@ jobs:
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 使用 GitHub API 下载文件..."
           python scripts/download-files.py
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 文件下载完成"
+
+      - name: Debug Cache
+        run: |
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 缓存文件内容:"
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          if [ -f .github/file-sha-cache.json ]; then
+            cat .github/file-sha-cache.json
+          else
+            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 缓存文件不存在"
 
       - name: Run Sync Script
         env:
