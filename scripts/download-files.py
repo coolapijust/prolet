@@ -318,8 +318,12 @@ def main():
     cached = 0
     failed = 0
     skipped = 0
+    skipped_ext = 0
+    skipped_dir = 0
     
     log_info(f'开始处理文件...')
+    log_info(f'源目录过滤: {SOURCE_DIR if SOURCE_DIR else "无（扫描整个仓库）"}')
+    log_info(f'允许的扩展名: {ALLOWED_EXTENSIONS}')
     
     for item in files:
         if item['type'] != 'blob':
@@ -328,12 +332,12 @@ def main():
         path = item['path']
         
         if SOURCE_DIR and not path.startswith(SOURCE_DIR + '/'):
-            skipped += 1
+            skipped_dir += 1
             continue
         
         ext = Path(path).suffix.lower()
         if ext not in ALLOWED_EXTENSIONS:
-            skipped += 1
+            skipped_ext += 1
             continue
         
         result = download_file(path, item['sha'], REPO, TOKEN, sha_cache)
@@ -347,6 +351,8 @@ def main():
                     downloaded += 1
         else:
             failed += 1
+    
+    log_info(f'跳过统计: 目录过滤={skipped_dir}, 扩展名过滤={skipped_ext}, 其他={skipped - skipped_dir - skipped_ext}')
     
     save_file_sha_cache(sha_cache)
     
