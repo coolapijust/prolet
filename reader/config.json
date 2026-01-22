@@ -1,8 +1,8 @@
 {
   "github_repo": "ProletRevDicta/Prolet",
   "source_dir": "/",
-  "site_title": "文档前端展示引擎",
-  "sidebar_title": "文档目录",
+  "site_title": "社会主义历史文献资料引擎",
+  "sidebar_title": "文献出目录",
   "theme": "light",
   "max_content_width": 900,
   "enable_search": true,
