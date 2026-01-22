@@ -15,14 +15,6 @@ from datetime import datetime
 
 WORKSPACE = Path(os.environ.get('GITHUB_WORKSPACE', '.'))
 
-is_github_actions = os.environ.get('GITHUB_ACTIONS') == 'true' or os.environ.get('CI') == 'true'
-
-if is_github_actions:
-    current_dir = Path.cwd()
-    if 'tools' in str(current_dir).lower():
-        WORKSPACE = current_dir
-        log_info(f'GitHub Actions 环境，调整工作目录: {WORKSPACE}')
-
 ALLOWED_EXTENSIONS = {'.txt', '.md', '.docx'}
 
 USER_AGENT = 'text-sync-tool/1.0'
@@ -36,6 +28,14 @@ def log_info(msg):
 def log_error(msg):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f'[Download-API][{timestamp}] [ERROR] {msg}')
+
+is_github_actions = os.environ.get('GITHUB_ACTIONS') == 'true' or os.environ.get('CI') == 'true'
+
+if is_github_actions:
+    current_dir = Path.cwd()
+    if 'tools' in str(current_dir).lower():
+        WORKSPACE = current_dir
+        log_info(f'GitHub Actions 环境，调整工作目录: {WORKSPACE}')
 
 def load_config():
     config_path = WORKSPACE / 'reader' / 'config.json'
