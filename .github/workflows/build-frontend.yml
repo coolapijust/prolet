@@ -55,6 +55,18 @@ jobs:
           name: workspace
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: List Available Artifacts
+        if: ${{ github.event_name == 'workflow_run' || github.event.inputs.redeploy_only != 'true' }}
+        run: |
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 列出可用的 artifacts"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          gh api repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts --jq '.artifacts[] | {name, id, size_in_bytes}'
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Verify Artifact Content
         if: ${{ github.event_name == 'workflow_run' || github.event.inputs.redeploy_only != 'true' }}
