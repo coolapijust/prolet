@@ -75,6 +75,26 @@ def convert_markdown(content: str) -> str:
     return md.render(content)
 
 
+def _clean_html_content(html_result: str) -> str:
+    """清理转换后的 HTML 内容，去除冗余标签和特定标识"""
+    import re
+    
+    # 1. 剔除分页标识 (针对 Word/TXT)
+    # 匹配类似于 ==========第1页========== 或 =============第 12 页=============
+    page_marker_pattern = re.compile(r'={3,}.*?第\s?\d+\s?页.*?={3,}', re.IGNORECASE)
+    html_result = page_marker_pattern.sub('', html_result)
+    
+    # 2. 清理冗余的空段落 (mammoth 经常产生这种标签)
+    # 匹配 <p></p>, <p> </p>, <p>&nbsp;</p>, <p><br /></p> 等
+    empty_p_pattern = re.compile(r'<p>\s*(?:&nbsp;|<br\s*/?>)?\s*</p>', re.IGNORECASE)
+    html_result = empty_p_pattern.sub('', html_result)
+    
+    # 3. 连续的 <br> 合并 (可选，视需要而定)
+    # html_result = re.sub(r'(<br\s*/?>\s*){3,}', '<br><br>', html_result)
+    
+    return html_result.strip()
+
+
 def convert_docx(file_path: Path, assets_dir: Optional[Path] = None, assets_prefix: str = "") -> str:
     """
     将 DOCX 文件转换为 HTML
@@ -169,7 +189,9 @@ def convert_docx(file_path: Path, assets_dir: Optional[Path] = None, assets_pref
                         continue
                     print(f"  mammoth warning: {msg_str}")
             
-            return f'<div class="docx-wrapper">{result.value}</div>'
+            # 使用内容清洗
+            cleaned_html = _clean_html_content(result.value)
+            return f'<div class="docx-wrapper">{cleaned_html}</div>'
     except Exception as e:
         escaped = html.escape(str(e))
         return f'<p class="error">DOCX 转换失败: {escaped}</p>'
