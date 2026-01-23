@@ -61,19 +61,26 @@ jobs:
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 验证文件存在"
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          ls -la reader/
-          echo ""
-          if [ -f reader/config.json ]; then
-            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] reader/config.json 存在"
-          else
-            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] reader/config.json 不存在"
-          fi
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 当前目录: $(pwd)"
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 根目录内容:"
+          ls -la
           echo ""
           if [ -f scripts/download-files.py ]; then
             echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] scripts/download-files.py 存在"
           else
             echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] scripts/download-files.py 不存在"
           fi
+          if [ -f scripts/sync.py ]; then
+            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] scripts/sync.py 存在"
+          else
+            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] scripts/sync.py 不存在"
+          fi
+          if [ -f reader/config.json ]; then
+            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] reader/config.json 存在"
+          else
+            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] reader/config.json 不存在"
+          fi
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
 
       - name: Cache SHA Cache
         uses: actions/cache@v4
