@@ -93,7 +93,8 @@ def index_to_dict(entries: list[IndexEntry]) -> list[dict]:
     for e in entries:
         item = {
             "name": e.name,
-            "type": e.type,
+            "title": e.name,  # 前端 app.js 需要 title 字段
+            "type": "folder" if e.type == "dir" else "file",
         }
         if e.type == "file":
             item["path"] = e.path
