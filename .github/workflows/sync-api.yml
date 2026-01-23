@@ -37,8 +37,7 @@ jobs:
         with:
           sparse-checkout: |
             txt
-            scripts/download-files.py
-            scripts/sync.py
+            scripts/
             reader/
           sparse-checkout-cone-mode: false
 
@@ -104,6 +103,15 @@ jobs:
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 使用 GitHub API 下载文件..."
           python scripts/download-files.py
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 文件下载完成"
+
+      - name: Verify CONFIG_FILE Path
+        run: |
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 验证 CONFIG_FILE 路径"
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] SYNC_ROOT_DIR: $SYNC_ROOT_DIR"
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 当前目录: $(pwd)"
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
 
       - name: Run Sync Script
         env:
