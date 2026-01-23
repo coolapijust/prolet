@@ -49,7 +49,7 @@ jobs:
           sparse-checkout-cone-mode: false
 
       - name: Download Workspace Artifact
-        if: ${{ github.event_name == 'workflow_run' || github.event.inputs.redeploy_only == 'false' }}
+        if: ${{ github.event_name == 'workflow_run' || github.event.inputs.redeploy_only != 'true' }}
         uses: actions/download-artifact@v4
         with:
           name: workspace
@@ -57,7 +57,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify Artifact Content
-        if: ${{ github.event_name == 'workflow_run' || github.event.inputs.redeploy_only == 'false' }}
+        if: ${{ github.event_name == 'workflow_run' || github.event.inputs.redeploy_only != 'true' }}
         run: |
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 验证 artifact 内容"
