@@ -54,7 +54,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .github/file-sha-cache.json
-          key: ${{ runner.os }}-sha-cache-v1
+          key: ${{ runner.os }}-sha-cache-${{ hashFiles('reader/config.json', 'scripts/download-files.py') }}
           restore-keys: |
             ${{ runner.os }}-sha-cache-
 
