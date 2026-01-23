@@ -69,6 +69,16 @@ jobs:
         run: |
           pip install -q python-docx mammoth
 
+      - name: Verify sync.py Version
+        run: |
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 验证 sync.py 版本"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] scripts/sync.py 路径: $(ls -la scripts/sync.py)"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 检查是否包含调试信息:"
+          grep -n "配置中的 source_dir_name" scripts/sync.py || echo "未找到调试信息"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+
       - name: Run Sync Script
         env:
           SYNC_ROOT_DIR: ${{ github.workspace }}
