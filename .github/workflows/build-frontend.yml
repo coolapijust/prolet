@@ -51,10 +51,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Download Reader Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: reader
-          path: reader
+        run: |
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 下载 reader artifact"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] Workflow Run ID: ${{ github.event.workflow_run.id }}"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 仓库: ${{ github.repository }}"
+          echo ""
+          
+          gh run download ${{ github.event.workflow_run.id }} \
+            --name reader \
+            --dir reader \
+            --repo ${{ github.repository }}
+          
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] Artifact 下载完成"
+          ls -la reader/
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Checkout Frontend from front-text
         uses: actions/checkout@v4
