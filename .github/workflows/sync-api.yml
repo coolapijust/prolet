@@ -38,6 +38,7 @@ jobs:
           sparse-checkout: |
             txt
             scripts/download-files.py
+            scripts/sync.py
             reader/config.json
           sparse-checkout-cone-mode: false
 
