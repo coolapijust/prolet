@@ -50,6 +50,25 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Verify Files
+        run: |
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 验证文件存在"
+          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          ls -la reader/
+          echo ""
+          if [ -f reader/config.json ]; then
+            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] reader/config.json 存在"
+          else
+            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] reader/config.json 不存在"
+          fi
+          echo ""
+          if [ -f scripts/download-files.py ]; then
+            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] scripts/download-files.py 存在"
+          else
+            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] scripts/download-files.py 不存在"
+          fi
+
       - name: Cache SHA Cache
         uses: actions/cache@v4
         with:
@@ -72,16 +91,6 @@ jobs:
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 使用 GitHub API 下载文件..."
           python scripts/download-files.py
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 文件下载完成"
-
-      - name: Debug Cache
-        run: |
-          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 缓存文件内容:"
-          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          if [ -f .github/file-sha-cache.json ]; then
-            cat .github/file-sha-cache.json
-          else
-            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 缓存文件不存在"
 
       - name: Run Sync Script
         env:
