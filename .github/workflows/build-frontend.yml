@@ -44,10 +44,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            txt
             reader/config.json
             scripts/sync.py
           sparse-checkout-cone-mode: false
+
+      - name: Download Workspace Artifact
+        if: ${{ github.event_name == 'workflow_run' || github.event.inputs.redeploy_only == 'false' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout Frontend from front-text
         uses: actions/checkout@v4
@@ -77,6 +84,24 @@ jobs:
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] scripts/sync.py 路径: $(ls -la scripts/sync.py)"
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 检查是否包含调试信息:"
           grep -n "配置中的 source_dir_name" scripts/sync.py || echo "未找到调试信息"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+
+      - name: Verify txt Directory
+        run: |
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 验证 txt 目录"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 当前目录: $(pwd)"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 根目录内容:"
+          ls -la
+          echo ""
+          if [ -d txt ]; then
+            echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] txt 目录存在"
+            echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] txt 目录内容:"
+            ls -la txt/
+          else
+            echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] txt 目录不存在"
+          fi
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
 
       - name: Run Sync Script

@@ -113,6 +113,16 @@ jobs:
           retention-days: 1
           compression-level: 6
 
+      - name: Upload Workspace Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace
+          path: |
+            txt/
+            reader/
+          retention-days: 1
+          compression-level: 6
+
       - name: Log Sync Summary
         run: |
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
