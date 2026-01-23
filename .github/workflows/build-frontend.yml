@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -16,6 +17,7 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Log Build Info
@@ -24,6 +26,9 @@ jobs:
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 开始构建前端"
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 仓库: ${{ github.repository }}"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 触发事件: ${{ github.event_name }}"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 触发 workflow: ${{ github.event.workflow_run.name }}"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 触发 workflow ID: ${{ github.event.workflow_run.id }}"
 
       - name: Checkout Main Repository
         uses: actions/checkout@v4
@@ -31,6 +36,19 @@ jobs:
           sparse-checkout: |
             reader/config.json
           sparse-checkout-cone-mode: false
+
+      - name: List Available Artifacts
+        run: |
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 列出可用的 artifact"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          gh run view ${{ github.event.workflow_run.id }} --log
+          echo ""
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 列出 artifact:"
+          gh run view ${{ github.event.workflow_run.id }} --log-failed || true
+          gh run view ${{ github.event.workflow_run.id }} --log || true
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Download Docs Artifact
         uses: actions/download-artifact@v4
