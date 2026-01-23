@@ -4,16 +4,6 @@ on:
   workflow_run:
     workflows: ["Sync Documents"]
     types: [completed]
-  workflow_dispatch:
-    inputs:
-      redeploy_only:
-        description: '仅重新部署（跳过下载）'
-        required: false
-        default: 'true'
-        type: choice
-        options:
-          - 'true'
-          - 'false'
 
 permissions:
   contents: read
@@ -27,7 +17,7 @@ concurrency:
 
 jobs:
   build:
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Log Build Info
@@ -44,9 +34,47 @@ jobs:
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            txt
             reader/config.json
           sparse-checkout-cone-mode: false
+
+      - name: List Available Artifacts
+        run: |
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 列出可用的 artifact"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] Workflow Run ID: ${{ github.event.workflow_run.id }}"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 仓库: ${{ github.repository }}"
+          echo ""
+          
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 列出所有 artifacts:"
+          gh run view ${{ github.event.workflow_run.id }} \
+            --repo ${{ github.repository }} \
+            --json artifacts \
+            --jq '.artifacts[] | {name: .name, size: .size, expired: .expired}'
+          
+          echo ""
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 尝试下载 reader artifact..."
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Download Reader Artifact
+        run: |
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 下载 reader artifact"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] Workflow Run ID: ${{ github.event.workflow_run.id }}"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 仓库: ${{ github.repository }}"
+          echo ""
+          
+          gh artifact download reader \
+            --run-id ${{ github.event.workflow_run.id }} \
+            --dir reader \
+            --repo ${{ github.repository }}
+          
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] Artifact 下载完成"
+          ls -la reader/
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Checkout Frontend from front-text
         uses: actions/checkout@v4
@@ -57,37 +85,11 @@ jobs:
             reader/css
             reader/app.js
             reader/index.html
-            scripts/sync.py
           sparse-checkout-cone-mode: false
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Dependencies
-        run: |
-          pip install -q python-docx mammoth
-
-      - name: Run Sync Script
-        env:
-          SYNC_ROOT_DIR: ${{ github.workspace }}
-        run: |
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 运行 sync.py 生成文档"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] github.workspace: ${{ github.workspace }}"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] SYNC_ROOT_DIR: $SYNC_ROOT_DIR"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 当前目录: $(pwd)"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          python frontend/scripts/sync.py
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 文档生成完成"
 
       - name: Merge Frontend
         run: |
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 合并前端文件"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 合并前端文件..."
           cp -r frontend/reader/* reader/
           rm -rf frontend
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 前端合并完成"
@@ -101,11 +103,6 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
-
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: reader/
 
       - name: Deploy to GitHub Pages
         id: deployment

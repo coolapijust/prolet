@@ -59,16 +59,10 @@ def get_source_dir():
 
 def get_docs_dir():
     sync_root_dir = os.environ.get('SYNC_ROOT_DIR')
-    log_info(f'SYNC_ROOT_DIR 环境变量: {sync_root_dir}', 'Sync')
     if sync_root_dir:
         root_dir = Path(sync_root_dir)
     else:
         root_dir = Path(__file__).parent.parent
-    
-    log_info(f'计算出的根目录: {root_dir}', 'Sync')
-    log_info(f'__file__: {__file__}', 'Sync')
-    log_info(f'__file__.parent: {Path(__file__).parent}', 'Sync')
-    log_info(f'__file__.parent.parent: {Path(__file__).parent.parent}', 'Sync')
     return root_dir / 'reader' / 'docs'
 
 def get_exclude_patterns():

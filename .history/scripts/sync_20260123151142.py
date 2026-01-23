@@ -59,16 +59,10 @@ def get_source_dir():
 
 def get_docs_dir():
     sync_root_dir = os.environ.get('SYNC_ROOT_DIR')
-    log_info(f'SYNC_ROOT_DIR 环境变量: {sync_root_dir}', 'Sync')
     if sync_root_dir:
         root_dir = Path(sync_root_dir)
     else:
         root_dir = Path(__file__).parent.parent
-    
-    log_info(f'计算出的根目录: {root_dir}', 'Sync')
-    log_info(f'__file__: {__file__}', 'Sync')
-    log_info(f'__file__.parent: {Path(__file__).parent}', 'Sync')
-    log_info(f'__file__.parent.parent: {Path(__file__).parent.parent}', 'Sync')
     return root_dir / 'reader' / 'docs'
 
 def get_exclude_patterns():
@@ -520,30 +514,20 @@ def main():
         root_dir = Path(__file__).parent.parent
     
     source_dir_name = get_source_dir()
-    if not source_dir_name:
-        txt_dir = root_dir / 'txt'
-        if txt_dir.exists() and txt_dir.is_dir():
-            source_dir_name = 'txt'
-            log_info(f'自动检测到源目录: txt/', 'Sync')
-    
-    if source_dir_name:
-        source_dir = root_dir / source_dir_name
-    else:
-        source_dir = root_dir
-    
+    source_dir = root_dir / source_dir_name
     docs_dir = root_dir / 'reader' / 'docs'
     index_file = root_dir / 'reader' / 'index.json'
     github_repo = get_github_repo()
     
     log_info(f'根目录: {root_dir}', 'Sync')
-    log_info(f'源目录: {source_dir.relative_to(root_dir) if source_dir != root_dir else "/"}', 'Sync')
+    log_info(f'源目录: /{source_dir_name}/', 'Sync')
     log_info(f'目标目录: {docs_dir}', 'Sync')
     log_info(f'索引文件: {index_file}', 'Sync')
     log_info(f'GitHub 仓库: {github_repo}', 'Sync')
     log_info(f'时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', 'Sync')
     
     if not source_dir.exists():
-        log_error(f'源目录不存在: {source_dir}', 'Sync')
+        log_error(f'源目录不存在: /{source_dir_name}/', 'Sync')
         return
     
     log_info('清理已删除的文件...', 'Sync')

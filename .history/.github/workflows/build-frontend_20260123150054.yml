@@ -76,10 +76,6 @@ jobs:
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 运行 sync.py 生成文档"
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] github.workspace: ${{ github.workspace }}"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] SYNC_ROOT_DIR: $SYNC_ROOT_DIR"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 当前目录: $(pwd)"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
           python frontend/scripts/sync.py
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 文档生成完成"
 
