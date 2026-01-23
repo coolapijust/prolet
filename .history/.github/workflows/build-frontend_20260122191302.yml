@@ -1,0 +1,77 @@
+name: Build and Deploy
+
+on:
+  workflow_run:
+    workflows: ["Sync Documents"]
+    types: [completed]
+
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log Build Info
+        run: |
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 开始构建前端"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 仓库: ${{ github.repository }}"
+
+      - name: Checkout Main Repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            reader/config.json
+          sparse-checkout-cone-mode: false
+
+      - name: Download Docs Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+          path: reader
+
+      - name: Checkout Frontend from front-text
+        uses: actions/checkout@v4
+        with:
+          repository: coolapijust/front-text
+          path: frontend
+          sparse-checkout: |
+            reader/css
+            reader/app.js
+            reader/index.html
+          sparse-checkout-cone-mode: false
+
+      - name: Merge Frontend
+        run: |
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 合并前端文件..."
+          cp -r frontend/reader/* reader/
+          rm -rf frontend
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 前端合并完成"
+
+      - name: Verify Build
+        run: |
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 验证构建产物..."
+          ls -la reader/
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 文件清单:"
+          find reader -type f | sort
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Log Deployment Summary
+        run: |
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 部署完成"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 页面 URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="

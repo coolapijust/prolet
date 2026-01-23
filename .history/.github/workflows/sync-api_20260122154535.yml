@@ -1,0 +1,139 @@
+name: Sync TXT Files (API Download)
+
+on:
+  workflow_dispatch:
+    inputs:
+      github_repo:
+        description: 'GitHub 仓库地址 (例如: owner/repo)'
+        required: false
+        default: ''
+
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log Deployment Info
+        run: |
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 开始部署"
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 仓库: ${{ github.repository }}"
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 触发方式: ${{ github.event_name }}"
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 工作流: ${{ github.workflow }}"
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 运行 ID: ${{ github.run_id }}"
+
+      - name: Checkout Tools Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          path: tools
+          sparse-checkout: |
+            scripts
+            reader/css
+            reader/app.js
+            reader/index.html
+            reader/config.json
+          sparse-checkout-cone-mode: false
+
+      - name: Log Checkout Info
+        run: |
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 工具仓库检出完成"
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 工作目录: $(pwd)"
+          ls -la
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache SHA Cache
+        uses: actions/cache@v4
+        with:
+          path: tools/.github/file-sha-cache.json
+          key: ${{ runner.os }}-sha-cache-${{ hashFiles('tools/.github/file-sha-cache.json') }}
+          restore-keys: |
+            ${{ runner.os }}-sha-cache-
+
+      - name: Install Dependencies
+        run: |
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 安装依赖..."
+          pip install -q python-docx
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 依赖安装完成"
+
+      - name: Download TXT Files via API
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO_OVERRIDE: ${{ github.event.inputs.github_repo }}
+        run: |
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 使用 GitHub API 下载文件..."
+          cd tools
+          python scripts/download-files.py
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 文件下载完成"
+
+      - name: Run Sync Script
+        run: |
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 扫描并同步文件..."
+          cd tools
+          python scripts/sync.py
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 文件同步完成"
+
+      - name: Upload Reader Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reader
+          path: tools/reader/
+          retention-days: 1
+          compression-level: 6
+
+      - name: Log Sync Summary
+        run: |
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 同步任务完成"
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+
+  deploy:
+    needs: sync
+    runs-on: ubuntu-latest
+    if: needs.sync.result == 'success'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Log Deployment Info
+        run: |
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 开始部署到 GitHub Pages"
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: reader
+          path: reader
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: reader
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Log Deployment Summary
+        run: |
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 部署完成"
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] 页面 URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "[Deploy][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="

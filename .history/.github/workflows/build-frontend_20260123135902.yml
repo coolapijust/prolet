@@ -66,8 +66,8 @@ jobs:
           echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 仓库: ${{ github.repository }}"
           echo ""
           
-          gh artifact download reader \
-            --run-id ${{ github.event.workflow_run.id }} \
+          gh run download ${{ github.event.workflow_run.id }} \
+            --name reader \
             --dir reader \
             --repo ${{ github.repository }}
           

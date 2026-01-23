@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  actions: read
   pages: write
   id-token: write
 
@@ -17,7 +16,6 @@ concurrency:
 
 jobs:
   build:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Log Build Info
@@ -37,44 +35,11 @@ jobs:
             reader/config.json
           sparse-checkout-cone-mode: false
 
-      - name: List Available Artifacts
-        run: |
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 列出可用的 artifact"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] Workflow Run ID: ${{ github.event.workflow_run.id }}"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 仓库: ${{ github.repository }}"
-          echo ""
-          
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 列出所有 artifacts:"
-          gh run view ${{ github.event.workflow_run.id }} \
-            --repo ${{ github.repository }} \
-            --json artifacts \
-            --jq '.artifacts[] | {name: .name, size: .size, expired: .expired}'
-          
-          echo ""
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 尝试下载 reader artifact..."
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - name: Download Reader Artifact
-        run: |
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 下载 reader artifact"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] Workflow Run ID: ${{ github.event.workflow_run.id }}"
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] 仓库: ${{ github.repository }}"
-          echo ""
-          
-          gh artifact download reader \
-            --run-id ${{ github.event.workflow_run.id }} \
-            --dir reader \
-            --repo ${{ github.repository }}
-          
-          echo "[Build][$(date +%Y-%m-%d\ %H:%M:%S)] Artifact 下载完成"
-          ls -la reader/
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Download Docs Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+          path: reader
 
       - name: Checkout Frontend from front-text
         uses: actions/checkout@v4

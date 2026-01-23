@@ -1,6 +1,6 @@
 {
   "github_repo": "ProletRevDicta/Prolet",
-  "source_dir": "txt",
+  "source_dir": "../txt",
   "target_branch": "master",
   "site_title": "社会主义历史文献资料引擎",
   "sidebar_title": "文献目录",

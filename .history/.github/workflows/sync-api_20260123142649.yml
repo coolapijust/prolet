@@ -100,7 +100,7 @@ jobs:
       - name: Run Sync Script
         run: |
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 扫描并同步文件..."
-          python frontend/scripts/sync.py
+          cd ${{ github.workspace }}/frontend && python scripts/sync.py
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 文件同步完成"
         env:
           SYNC_ROOT_DIR: ${{ github.workspace }}

@@ -26,11 +26,6 @@ jobs:
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 仓库: ${{ github.repository }}"
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 触发方式: ${{ github.event_name }}"
-          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 工作目录: ${{ github.workspace }}"
-          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 运行器: ${{ runner.os }}"
-          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          pwd
-          ls -la
 
       - name: Checkout Main Repository
         uses: actions/checkout@v4
@@ -98,12 +93,12 @@ jobs:
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 文件下载完成"
 
       - name: Run Sync Script
+        env:
+          SYNC_ROOT_DIR: ${{ github.workspace }}
         run: |
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 扫描并同步文件..."
           python frontend/scripts/sync.py
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 文件同步完成"
-        env:
-          SYNC_ROOT_DIR: ${{ github.workspace }}
 
       - name: Upload Reader Artifact
         uses: actions/upload-artifact@v4
@@ -118,16 +113,3 @@ jobs:
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 同步任务完成"
           echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-
-      - name: Save Cache on Failure
-        if: failure()
-        run: |
-          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 保存缓存（失败时）"
-          echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] ==========================================="
-          if [ -f .github/file-sha-cache.json ]; then
-            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 缓存文件存在"
-            cat .github/file-sha-cache.json
-          else
-            echo "[Sync][$(date +%Y-%m-%d\ %H:%M:%S)] 缓存文件不存在"
-          fi
